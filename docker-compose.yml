@@ -1,0 +1,53 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:17
+    container_name: invoiceguard-db
+    environment:
+      POSTGRES_USER: invoiceguard
+      POSTGRES_PASSWORD: invoiceguard
+      POSTGRES_DB: invoiceguard
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U invoiceguard -d invoiceguard"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: invoiceguard-backend
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql+psycopg2://invoiceguard:invoiceguard@db:5432/invoiceguard
+      - USE_MOCK_NEMOTRON=true
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./storage:/app/storage
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: invoiceguard-frontend
+    depends_on:
+      - backend
+    environment:
+      - NEXT_PUBLIC_API_BASE=http://localhost:8000
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:

@@ -1,0 +1,68 @@
+# .gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+.env
+.env.example
+.venv/
+venv/
+.env.*
+
+# Scripts (setup/startup — not source)
+*.cmd
+*.bat
+*.ps1
+*.vbs
+BLUEPRINT.md
+ENGINEERING_HANDOFF.md
+setup_db.sql
+setup_db_schema.sql
+start_
+
+# Node
+node_modules/
+.next/
+out/
+dist/
+build/
+.deployment
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Docker
+.dockerignore
+
+evaluation/
+
+# Logs (runtime)
+*.log
+backend.log
+frontend.log
+backend_err.log
+frontend_err.log
+
+# Storage (user-uploaded documents)
+storage/
+
+# Evaluation results (regenerated)
+evaluation/
+
+# Alembic
+alembic.ini
