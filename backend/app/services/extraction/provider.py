@@ -94,6 +94,50 @@ class NemotronProvider(ExtractionProvider):
     @staticmethod
     def _build_prompt(document_text: str, document_type_hint: Optional[str]) -> str:
         hint = f"\nThe document is suspected to be a: {document_type_hint}." if document_type_hint else ""
+
+        # Few-shot examples teach Nemotron the expected JSON format without
+        # requiring users to fill templates. One example per document type.
+        few_shot_examples = (
+            "\nEXAMPLES:\n"
+            "---\n"
+            "DOCUMENT TEXT:\n"
+            "PURCHASE ORDER\nPO-1001\nVendor: Acme Corp\nCurrency: INR\nDate: 2026-10-01\n"
+            "Description          Code       Qty     Unit Price     Line Total\n"
+            "Industrial Motor    MTR-100   100     50,000.00     5,000,000.00\n\n"
+            "EXTRACTION:\n"
+            '{"document_type":"PURCHASE_ORDER","document_number":"PO-1001",'
+            '"document_date":"2026-10-01","vendor_name":"Acme Corp","currency":"INR",'
+            '"purchase_order_reference":null,"line_items":[{"description":"Industrial Motor",'
+            '"product_code":"MTR-100","quantity":"100","unit_price":"50000.00",'
+            '"line_total":"5000000.00","source_page":1,"source_text":"Industrial Motor MTR-100 100 50,000.00 5,000,000.00"}],'
+            '"subtotal":null,"tax_amount":null,"grand_total":null}\n'
+            "---\n"
+            "DOCUMENT TEXT:\n"
+            "VENDOR INVOICE\nINV-2001\nVendor: Acme Corp\nPO Reference: PO-1001\nCurrency: INR\nDate: 2026-10-05\n"
+            "Description          Code       Qty     Unit Price     Line Total\n"
+            "Industrial Motor    MTR-100   100     52,000.00     5,200,000.00\n"
+            "Grand Total: 5,200,000.00\n\n"
+            "EXTRACTION:\n"
+            '{"document_type":"VENDOR_INVOICE","document_number":"INV-2001",'
+            '"document_date":"2026-10-05","vendor_name":"Acme Corp","currency":"INR",'
+            '"purchase_order_reference":"PO-1001","line_items":[{"description":"Industrial Motor",'
+            '"product_code":"MTR-100","quantity":"100","unit_price":"52000.00",'
+            '"line_total":"5200000.00","source_page":1,"source_text":"Industrial Motor MTR-100 100 52,000.00 5,200,000.00"}],'
+            '"subtotal":null,"tax_amount":null,"grand_total":"5200000.00"}\n'
+            "---\n"
+            "DOCUMENT TEXT:\n"
+            "GOODS RECEIPT NOTE\nGRN-3001\nVendor: Acme Corp\nPO Reference: PO-1001\nDate: 2026-10-08\n"
+            "Description          Code       Qty     Unit Price     Line Total\n"
+            "Industrial Motor    MTR-100   95      -             -\n\n"
+            "EXTRACTION:\n"
+            '{"document_type":"GOODS_RECEIPT_NOTE","document_number":"GRN-3001",'
+            '"document_date":"2026-10-08","vendor_name":"Acme Corp","currency":null,'
+            '"purchase_order_reference":"PO-1001","line_items":[{"description":"Industrial Motor",'
+            '"product_code":"MTR-100","quantity":"95","unit_price":null,"line_total":null,'
+            '"source_page":1,"source_text":"Industrial Motor MTR-100 95 - -"}],'
+            '"subtotal":null,"tax_amount":null,"grand_total":null}\n'
+        )
+
         return (
             "You extract structured information from procurement documents. "
             "Follow these rules strictly:\n"
@@ -110,9 +154,49 @@ class NemotronProvider(ExtractionProvider):
             '"line_items":[{"description":"...","product_code":"...","quantity":"...",'
             '"unit_price":"...","line_total":"...","source_page":1,"source_text":"..."}],'
             '"subtotal":"...","tax_amount":"...","grand_total":"..."}\n'
-            f"Use decimal strings for financial and quantity values.{hint}\n\n"
-            f"DOCUMENT TEXT:\n{document_text}\n"
+            f"Use decimal strings for financial and quantity values.{hint}"
+            f"{few_shot_examples}\n\n"
+            f"DOCUMENT TEXT:\n{NemotronProvider._normalize_layout(document_text)}\n"
         )
+
+    @staticmethod
+    def _normalize_layout(document_text: str) -> str:
+        """Pre-process PDF text before extraction to make layouts uniform.
+
+        Handles:
+          - Strips commas from numeric values (50,000.00 -> 50000.00)
+          - Converts standalone dashes (-) to empty placeholders for null fields
+          - Collapses excessive whitespace within lines
+          - Normalizes table header spacing
+        """
+        import re
+
+        normalized_lines = []
+        for line in document_text.splitlines():
+            stripped = line.strip()
+            if not stripped:
+                normalized_lines.append("")
+                continue
+
+            # Collapse multiple spaces/tabs within the line
+            collapsed = re.sub(r"[ \t]+", " ", stripped)
+
+            # Strip commas from numbers: 50,000.00 -> 50000.00, 5,000,000 -> 5000000
+            collapsed = re.sub(r"(\d),(\d)", r"\1\2", collapsed)
+
+            # Replace standalone dash (null indicator) with empty placeholder.
+            # Only match dashes surrounded by whitespace or at line boundaries,
+            # NOT hyphens inside codes/dates like PO-1001 or 2026-10-01.
+            collapsed = re.sub(r"(?<=\s)-(?=\s)", "", collapsed)
+            collapsed = re.sub(r"^-\s", "", collapsed)
+            collapsed = re.sub(r"\s-$", "", collapsed)
+
+            # Clean up double spaces left after dash removal
+            collapsed = re.sub(r"[ \t]+", " ", collapsed).strip()
+
+            normalized_lines.append(collapsed)
+
+        return "\n".join(normalized_lines)
 
     @staticmethod
     def _extract_content(data: Dict[str, Any]) -> str:

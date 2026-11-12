@@ -29,23 +29,6 @@ Authoritative spec: `BLUEPRINT.md` (Section 1–20, esp. 18 for agent instructio
 
 ## Progress tracking (update as work completes)
 
-### Done
-- Read BLUEPRINT.md completely (1738 lines).
-- Created Python venv `.venv`.
-- Activated venv; confirmed fastapi 0.116.1 installed; pymupdf ok. sqlalchemy/pytest installed.
-- Project structure created (backend, frontend, evaluation, storage).
-- Config, database, SQLAlchemy models implemented.
-- Document service (upload, PDF text extraction via PyMuPDF) implemented.
-- Nemotron provider adapter + extraction service implemented (mocked locally, clearly labeled).
-- Deterministic validation service implemented.
-- Reconciliation engine implemented (price, quantity, missing item, unbilled receipt, reference mismatch, arithmetic).
-- Reporting service (PDF + CSV) implemented.
-- FastAPI routes + main.py implemented; all endpoints registered.
-- Backend tests: 14 passed (11 unit + 3 integration).
-- Evaluation framework implemented: dataset generator, run_evaluation, extraction metrics, 5 separate confusion matrices (PNG + JSON), evaluation report.
-- Frontend (Next.js) implemented and builds successfully.
-- Docker Compose + Dockerfiles + README + .gitignore created.
-
 ### Done (ALL COMPLETE)
 - Read BLUEPRINT.md completely (1738 lines).
 - Created Python venv `.venv`.
@@ -56,7 +39,7 @@ Authoritative spec: `BLUEPRINT.md` (Section 1–20, esp. 18 for agent instructio
 - Nemotron provider adapter + extraction service implemented (mocked locally, clearly labeled).
 - Deterministic validation service implemented.
 - Reconciliation engine implemented (price, quantity, missing item, unbilled receipt, reference mismatch, arithmetic).
-- Reporting service (PDF + CSV) implemented.
+- Reporting service (PDF + CSV) implemented — PDF redesigned: landscape A4, 40pt margins, wrapping Paragraph cells, brand-styled title/case summary/findings table, severity color-coding, plain language "What This Means" section, page-numbered footer.
 - FastAPI routes + main.py implemented; all endpoints registered.
 - Backend tests: 14 passed (11 unit + 3 integration).
 - Evaluation framework implemented: dataset generator, run_evaluation, extraction metrics, 5 separate confusion matrices (PNG + JSON), evaluation report.
@@ -64,8 +47,8 @@ Authoritative spec: `BLUEPRINT.md` (Section 1–20, esp. 18 for agent instructio
 - Docker Compose + Dockerfiles + README + .gitignore created.
 - Final engineering handoff written (ENGINEERING_HANDOFF.md).
 
-### Session updates (latest)
-- Manual test docs: `manual test docs/MT-001` through `MT-010`, each with PO + Invoice + GRN PDF (10 scenarios: clean match, price discrepancy, quantity discrepancy, missing item, unbilled receipt, arithmetic error, reference mismatch, multi-line USD, mixed discrepancies, clean USD).
+### Session updates (this session)
+- Manual test docs: `manual test docs/MT-001` through `MT-021`, each with PO + Invoice + GRN PDF (21 scenarios: clean match INR/USD/EUR, price discrepancy, quantity discrepancy (under/over), missing item (invoice/PO), unbilled receipt (single/multi), arithmetic error (line total), reference mismatch, multi-line items, mixed discrepancies, clean high-value, currency mismatch).
 - DELETE `/api/v1/cases/{case_id}` — deletes case + storage files.
 - DELETE `/api/v1/documents/{document_id}` — deletes document + storage file.
 - 7-day auto-cleanup on startup (`CASE_RETENTION_DAYS`, default 7) + manual `POST /api/v1/admin/cleanup`.
@@ -87,6 +70,11 @@ Authoritative spec: `BLUEPRINT.md` (Section 1–20, esp. 18 for agent instructio
 - Plain language explanations added to all discrepancy types (price, quantity, unordered, unbilled, missing, reference, arithmetic) — human-readable "What this means" box on frontend.
 - `plain_language_explanation` column added to Discrepancy DB model.
 - DiscrepancyFinding dataclass extended with `plain_language_explanation` field.
+- Few-shot prompting: 1–2 example extractions per document type added to Nemotron prompt.
+- Layout normalization pipeline: `_normalize_layout` strips commas from numbers, handles dash null values, collapses whitespace; called before extraction.
+- Codebase cleaned up: removed junk files, logs, pycache, old test PDFs.
+- `.gitignore` updated to ignore `.env`, logs, caches, storage/, evaluation/, startup scripts, spec docs.
+- PDF report redesigned: landscape A4, 40pt margins, wrapping Paragraph cells (no data cut off), brand-styled title bar, grey case summary box, severity color-coding, plain language "What This Means" boxes, page-numbered footer.
 
 ### Running now
 - Backend: http://127.0.0.1:8000 (health: {"status":"ok","mocked_ai":false})
@@ -99,15 +87,12 @@ Authoritative spec: `BLUEPRINT.md` (Section 1–20, esp. 18 for agent instructio
 - PowerShell `2>/dev/null` redirection fails on this shell (uses `C:\dev\null`); use `-ErrorAction SilentlyContinue` or omit redirection.
 - Activate venv before pip/python commands: `.venv\Scripts\Activate.ps1`.
 - To switch back to mock: set `USE_MOCK_NEMOTRON=true` in `.env` or remove `NEMOTRON_API_KEY`.
-- Test PDFs are in `manual test docs/MT-XXX/` folders — 10 complete sets for manual testing.
+- Test PDFs are in `manual test docs/MT-XXX/` folders — 20 complete sets for manual testing.
 - Output standardization: plain language explanations are now generated server-side for every discrepancy type and displayed prominently in a green "What this means" box on the Case Detail page.
 - Input templates: NOT implemented — determined that manual template filling defeats the purpose of automated analysis.
+- Few-shot prompting and layout normalization are active in extraction pipeline and tested with real Nemotron AI.
 
-## TODO (next session — input standardization)
-- [ ] Option 2: Few-shot prompting — include 1–2 example extractions per document type in Nemotron prompt to teach expected format.
-- [ ] Option 3: Layout normalization pipeline — pre-process PDFs (detect table headers, align columns, standardize number formats / strip commas / handle dashes) before extraction.
-
-## Current state
-- Backend: http://127.0.0.1:8000 (health: {"status":"ok","mocked_ai":false})
-- Frontend: http://localhost:3000
-- Real Nemotron AI enabled; reconciliation working with plain-language explanations.
+### Next session TODOs
+- Re-run backend tests after changes (prior result: 14 passed — 11 unit + 3 integration).
+- Consider Git init + initial commit (user permission required before pushing).
+- Consider adding more manual test sets if needed.
