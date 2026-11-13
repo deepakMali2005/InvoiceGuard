@@ -8,14 +8,13 @@ reconciliation, identifies discrepancies, and produces evidence-backed reports.
 
 ## Screenshots
 
-> Take 2–3 screenshots of the running frontend and save them here, then
-> uncomment and update the paths below:
+<!-- > Take 2–3 screenshots of the running frontend and save them here, then
+> uncomment and update the paths below: -->
 
-<!--
 ![Dashboard](./docs/screenshots/dashboard.png)
-![Case Detail](./docs/screenshots/case-detail.png)
-![New Reconciliation](./docs/screenshots/new-reconciliation.png)
--->
+![Case Detail](./docs/screenshots/case-details.png)
+![Case Detail](./docs/screenshots/case-details2.png) 
+<!-- ![New Reconciliation](./docs/screenshots/new-reconciliation.png) -->
 
 ## Features
 
@@ -78,5 +77,4 @@ pytest tests/ -q
 
 ## Configuration
 
-Copy `.env.example` to `.env` and fill in your values. Never commit real
-credentials — `.env` is gitignored.
+Copy `.env.example` to `.env` and fill in your values.
