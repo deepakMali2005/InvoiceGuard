@@ -74,6 +74,7 @@ Authoritative spec: `BLUEPRINT.md` (Section 1–20, esp. 18 for agent instructio
 - Layout normalization pipeline: `_normalize_layout` strips commas from numbers, handles dash null values, collapses whitespace; called before extraction.
 - Codebase cleaned up: removed junk files, logs, pycache, old test PDFs.
 - `.gitignore` updated to ignore `.env`, logs, caches, storage/, evaluation/, startup scripts, spec docs.
+- Evaluation framework re-run with real Nemotron API (USE_MOCK_NEMOTRON=false): field accuracy 49.21% (62/126), line-item accuracy 48.15% (13/27) vs 0% mocked. Discrepancy detection shows 0 TP across all categories — reconciliation engine not flagging existing discrepancies in synthetic data. README updated with results.
 - PDF report redesigned: landscape A4, 40pt margins, wrapping Paragraph cells (no data cut off), brand-styled title bar, grey case summary box, severity color-coding, plain language "What This Means" boxes, page-numbered footer.
 
 ### Running now

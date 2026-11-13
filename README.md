@@ -157,10 +157,23 @@ Outputs in `evaluation/results/`:
   missing item, arithmetic, and reference mismatch
 - `evaluation_report.md` — human-readable report with limitations
 
-The local evaluation runs with the **mocked Nemotron provider** and is clearly
-labeled as such; results are illustrative (synthetic, small dataset) and are
-not presented as real-world evidence. To evaluate against real Nemotron, set
-`NEMOTRON_API_KEY` and `USE_MOCK_NEMOTRON=false`.
+### Latest Evaluation Results (real Nemotron provider, 7 synthetic cases)
+
+| Metric | Value |
+|---|---|
+| Field accuracy | 49.21% (62/126) |
+| Line-item accuracy | 48.15% (13/27) |
+| Evaluation mode | real_nemotron (USE_MOCK_NEMOTRON=false) |
+
+| Discrepancy Category | TP | FP | FN | TN | Precision | Recall | F1 | Accuracy |
+|---|---|---|---|---|---|---|---|---|
+| Price | 0 | 0 | 1 | 6 | 0.00% | 0.00% | 0.00% | 85.71% |
+| Quantity | 0 | 0 | 2 | 5 | 0.00% | 0.00% | 0.00% | 71.43% |
+| Missing Item | 0 | 0 | 1 | 6 | 0.00% | 0.00% | 0.00% | 85.71% |
+| Arithmetic | 0 | 0 | 1 | 6 | 0.00% | 0.00% | 0.00% | 85.71% |
+| Reference Mismatch | 0 | 0 | 1 | 6 | 0.00% | 0.00% | 0.00% | 85.71% |
+
+> **Note:** Line-item extraction improved to 48.15% with real Nemotron (vs 0.00% with mocked). However, discrepancy detection shows 0 true positives across all categories — the reconciliation engine is not flagging discrepancies that exist in the synthetic test data. This indicates a gap between extraction output and reconciliation rule matching that should be investigated. Results are from a synthetic, small dataset and are illustrative, not real-world evidence.
 
 ## Key design decisions (documented)
 
