@@ -6,6 +6,28 @@ Compares Purchase Order (PO), Vendor Invoice, and Goods Receipt Note (GRN)
 documents, extracts their contents via AI, performs deterministic financial
 reconciliation, identifies discrepancies, and produces evidence-backed reports.
 
+## Screenshots
+
+> Take 2–3 screenshots of the running frontend and save them here, then
+> uncomment and update the paths below:
+
+<!--
+![Dashboard](./docs/screenshots/dashboard.png)
+![Case Detail](./docs/screenshots/case-detail.png)
+![New Reconciliation](./docs/screenshots/new-reconciliation.png)
+-->
+
+## Features
+
+- **Case management** — create, list, view, and delete reconciliation cases
+- **Document upload** — PO, Vendor Invoice, and GRN PDFs per case
+- **AI extraction** — LLM-powered document parsing with few-shot prompting
+- **Deterministic reconciliation** — price, quantity, missing item,
+  unbilled receipt, reference mismatch, and arithmetic checks
+- **Plain language explanations** — human-readable "what this means" per finding
+- **Reports** — PDF and CSV download per case
+- **Auto-cleanup** — 7-day case retention + manual cleanup endpoint
+
 ## Architecture
 
 **AI interprets documents; deterministic Python verifies financial facts.**
@@ -56,13 +78,5 @@ pytest tests/ -q
 
 ## Configuration
 
-Set these in `.env` (never commit real credentials):
-
-| Variable | Purpose |
-|----------|---------|
-| `LLM_API_ENDPOINT` | LLM chat completions endpoint |
-| `LLM_MODEL` | Model name |
-| `LLM_API_KEY` | API key |
-| `USE_MOCK_LLM` | `false` for real API, `true` for mocked |
-| `DATABASE_URL` | PostgreSQL connection string |
-| `STORAGE_PATH` | Local document storage directory |
+Copy `.env.example` to `.env` and fill in your values. Never commit real
+credentials — `.env` is gitignored.
