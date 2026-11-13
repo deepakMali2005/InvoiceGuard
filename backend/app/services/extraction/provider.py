@@ -1,14 +1,14 @@
-"""Nemotron AI provider adapter.
+"""LLM AI provider adapter.
 
 InvoiceGuard keeps the AI provider independent of the extraction service through this adapter.
 Configuration is entirely environment-driven; no credentials are ever hardcoded.
 
 Two modes are supported:
-  * REAL mode: calls the configured Nemotron API endpoint (requires NEMOTRON_API_KEY).
+  * REAL mode: calls the configured LLM API endpoint (requires LLM_API_KEY).
   * MOCK mode: returns deterministic, clearly-labeled mocked responses for local development
     and tests. Mocked extractions are never presented as real model results.
 
-Set USE_MOCK_NEMOTRON=true (or leave NEMOTRON_API_KEY unset) to use mocked responses locally.
+Set USE_MOCK_LLM=true (or leave LLM_API_KEY unset) to use mocked responses locally.
 """
 
 from __future__ import annotations
@@ -29,7 +29,7 @@ from app.schemas.extraction import ExtractionResult
 
 SETTINGS = get_settings()
 
-USE_MOCK = SETTINGS.USE_MOCK_NEMOTRON or not SETTINGS.NEMOTRON_API_KEY
+USE_MOCK = SETTINGS.USE_MOCK_LLM or not SETTINGS.LLM_API_KEY
 
 
 class ExtractionProvider(ABC):
@@ -41,8 +41,8 @@ class ExtractionProvider(ABC):
         raise NotImplementedError
 
 
-class NemotronProvider(ExtractionProvider):
-    """Real Nemotron API provider."""
+class LLMProvider(ExtractionProvider):
+    """Real LLM API provider."""
 
     def __init__(self, endpoint: str, model: str, api_key: str, timeout: int = 30, max_retries: int = 2):
         self.endpoint = endpoint
@@ -72,7 +72,7 @@ class NemotronProvider(ExtractionProvider):
                 with httpx.Client(timeout=self.timeout) as client:
                     response = client.post(self.endpoint, headers=headers, json=payload)
                 if response.status_code == 429:
-                    logger.warning("Nemotron rate-limited on attempt %s", attempt)
+                    logger.warning("LLM rate-limited on attempt %s", attempt)
                     last_error = ExtractionError(f"Rate limited (attempt {attempt})")
                     continue
                 response.raise_for_status()
@@ -81,21 +81,21 @@ class NemotronProvider(ExtractionProvider):
                 return self._parse_json(content)
             except (httpx.TimeoutException, httpx.ConnectError) as exc:
                 last_error = exc
-                logger.warning("Nemotron request failed on attempt %s: %s", attempt, exc)
+                logger.warning("LLM request failed on attempt %s: %s", attempt, exc)
                 continue
             except ExtractionError:
                 raise
             except Exception as exc:  # noqa: BLE001
                 last_error = exc
-                logger.warning("Nemotron unexpected error on attempt %s: %s", attempt, exc)
+                logger.warning("LLM unexpected error on attempt %s: %s", attempt, exc)
                 continue
-        raise ExtractionError(f"Nemotron extraction failed after {self.max_retries} attempts: {last_error}")
+        raise ExtractionError(f"LLM extraction failed after {self.max_retries} attempts: {last_error}")
 
     @staticmethod
     def _build_prompt(document_text: str, document_type_hint: Optional[str]) -> str:
         hint = f"\nThe document is suspected to be a: {document_type_hint}." if document_type_hint else ""
 
-        # Few-shot examples teach Nemotron the expected JSON format without
+        # Few-shot examples teach the LLM the expected JSON format without
         # requiring users to fill templates. One example per document type.
         few_shot_examples = (
             "\nEXAMPLES:\n"
@@ -156,7 +156,7 @@ class NemotronProvider(ExtractionProvider):
             '"subtotal":"...","tax_amount":"...","grand_total":"..."}\n'
             f"Use decimal strings for financial and quantity values.{hint}"
             f"{few_shot_examples}\n\n"
-            f"DOCUMENT TEXT:\n{NemotronProvider._normalize_layout(document_text)}\n"
+            f"DOCUMENT TEXT:\n{LLMProvider._normalize_layout(document_text)}\n"
         )
 
     @staticmethod
@@ -209,7 +209,7 @@ class NemotronProvider(ExtractionProvider):
         # Some providers return content at top level
         if isinstance(data.get("content"), str):
             return data["content"]
-        raise ExtractionError("Nemotron response did not contain extractable text content.")
+        raise ExtractionError("LLM response did not contain extractable text content.")
 
     @staticmethod
     def _parse_json(content: str) -> Dict[str, Any]:
@@ -223,20 +223,20 @@ class NemotronProvider(ExtractionProvider):
         try:
             return json.loads(text)
         except json.JSONDecodeError as exc:
-            raise ExtractionError(f"Nemotron returned invalid JSON: {exc}") from exc
+            raise ExtractionError(f"LLM returned invalid JSON: {exc}") from exc
 
 
 class MockExtractionProvider(ExtractionProvider):
     """Deterministic mocked provider for local development and tests.
 
     All responses are clearly labeled as mocked and must never be presented
-    as real Nemotron API results.
+    as real LLM API results.
     """
 
     MOCK_SOURCE = "mock"
 
     def extract(self, document_text: str, document_type_hint: Optional[str] = None) -> Dict[str, Any]:
-        logger.info("Using MOCK Nemotron provider (not a real model result).")
+        logger.info("Using MOCK LLM provider (not a real model result).")
         return self._mock_extract(document_text, document_type_hint)
 
     @staticmethod
@@ -397,21 +397,21 @@ class MockExtractionProvider(ExtractionProvider):
 def get_provider() -> ExtractionProvider:
     """Factory returning the configured extraction provider.
 
-    Returns a MockExtractionProvider when USE_MOCK_NEMOTRON=true or no API key is set,
-    otherwise returns the real NemotronProvider.
+    Returns a MockExtractionProvider when USE_MOCK_LLM=true or no API key is set,
+    otherwise returns the real LLMProvider.
     """
     if USE_MOCK:
         logger.warning(
-            "MOCK Nemotron provider active. Extractions are simulated and labeled mocked. "
-            "Set NEMOTRON_API_KEY and USE_MOCK_NEMOTRON=false to use the real API."
+            "MOCK LLM provider active. Extractions are simulated and labeled mocked. "
+            "Set LLM_API_KEY and USE_MOCK_LLM=false to use the real API."
         )
         return MockExtractionProvider()
-    return NemotronProvider(
-        endpoint=SETTINGS.NEMOTRON_API_ENDPOINT,
-        model=SETTINGS.NEMOTRON_MODEL,
-        api_key=SETTINGS.NEMOTRON_API_KEY,
-        timeout=SETTINGS.NEMOTRON_EXTRACTION_TIMEOUT_SECONDS,
-        max_retries=SETTINGS.NEMOTRON_MAX_RETRIES,
+    return LLMProvider(
+        endpoint=SETTINGS.LLM_API_ENDPOINT,
+        model=SETTINGS.LLM_MODEL,
+        api_key=SETTINGS.LLM_API_KEY,
+        timeout=SETTINGS.LLM_TIMEOUT_SECONDS,
+        max_retries=SETTINGS.LLM_MAX_RETRIES,
     )
 
 

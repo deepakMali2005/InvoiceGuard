@@ -7,10 +7,9 @@ __pycache__/
 *.pyd
 .Python
 .env
-.env.example
 .venv/
 venv/
-.env.*
+.env
 
 # Scripts (setup/startup — not source)
 *.cmd

@@ -2,7 +2,7 @@
 
 import os
 
-os.environ["USE_MOCK_NEMOTRON"] = "true"
+os.environ["USE_MOCK_LLM"] = "true"
 
 from app.services.extraction.provider import get_provider, MockExtractionProvider, USE_MOCK
 

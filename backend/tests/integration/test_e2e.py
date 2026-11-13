@@ -1,7 +1,7 @@
 """End-to-end API tests using FastAPI TestClient.
 
 These exercise create_case -> upload documents -> extract -> reconcile -> report.
-External Nemotron calls are mocked (USE_MOCK_NEMOTRON=true).
+External LLM calls are mocked (USE_MOCK_LLM=true).
 """
 
 from fastapi.testclient import TestClient

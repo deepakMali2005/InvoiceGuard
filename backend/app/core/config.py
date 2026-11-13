@@ -10,13 +10,13 @@ _PROJECT_ROOT = Path(__file__).resolve().parents[3]  # backend/app/core/config.p
 
 
 class Settings(BaseSettings):
-    # Nemotron AI provider (env-driven; never hardcode credentials)
-    NEMOTRON_API_ENDPOINT: str = "https://api.nemotron.example.com/v1/chat/completions"
-    NEMOTRON_MODEL: str = "nemotron-4"
-    NEMOTRON_API_KEY: str = ""
-    USE_MOCK_NEMOTRON: bool = True
-    NEMOTRON_EXTRACTION_TIMEOUT_SECONDS: int = 30
-    NEMOTRON_MAX_RETRIES: int = 2
+    # LLM AI provider (env-driven; never hardcode credentials)
+    LLM_API_ENDPOINT: str = "https://api.llm.example.com/v1/chat/completions"
+    LLM_MODEL: str = "llm-4"
+    LLM_API_KEY: str = ""
+    USE_MOCK_LLM: bool = True
+    LLM_TIMEOUT_SECONDS: int = 30
+    LLM_MAX_RETRIES: int = 2
 
     # Database
     DATABASE_URL: str = "postgresql+psycopg2://invoiceguard:invoiceguard@localhost:5432/invoiceguard"
