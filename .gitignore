@@ -70,3 +70,4 @@ alembic.ini
 manual test docs/
 generate_manual_test_docs.py
 temp.txt
+AGENTS.md
