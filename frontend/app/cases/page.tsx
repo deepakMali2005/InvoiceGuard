@@ -156,7 +156,11 @@ export default function CasesList() {
                   const cfg = STATUS_CONFIG[c.status] || STATUS_CONFIG.CREATED;
                   const isDeleting = deleting === c.id;
                   return (
-                    <tr key={c.id} className="border-b border-slate-50 hover:bg-slate-50 transition-colors group">
+                    <tr
+                      key={c.id}
+                      onClick={() => router.push(`/cases/${c.id}`)}
+                      className="border-b border-slate-50 hover:bg-slate-100 hover:shadow-sm transition-all duration-200 cursor-pointer group"
+                    >
                       <td className="px-6 py-4 text-sm font-medium text-slate-900">
                         {c.case_reference}
                       </td>

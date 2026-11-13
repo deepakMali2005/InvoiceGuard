@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { List, AlertCircle, CheckCircle, Clock, DollarSign, FileText, ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { AlertCircle, CheckCircle, Clock, FileText, ArrowRight, ShieldAlert, Plus } from "lucide-react";
 import { health, listCases } from "@/app/lib/api";
 import { STATUS_CONFIG } from "@/app/lib/constants";
 import Link from "next/link";
 
 
 export default function Dashboard() {
+  const router = useRouter();
   const [healthData, setHealth] = useState<any>(null);
   const [cases, setCases] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -85,15 +87,6 @@ export default function Dashboard() {
           <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
           <p className="text-slate-500">Overview of your reconciliation cases and system status.</p>
         </div>
-        <div className="flex items-center gap-3">
-          <span className={`px-3 py-1 rounded-full text-xs font-medium border ${
-            healthData?.mocked_ai
-              ? "bg-amber-50 text-amber-700 border-amber-200"
-              : "bg-emerald-50 text-emerald-700 border-emerald-200"
-          }`}>
-            {healthData?.mocked_ai ? "AI: Mocked" : "AI: Live"}
-          </span>
-        </div>
       </div>
 
       {/* Stats cards */}
@@ -116,7 +109,10 @@ export default function Dashboard() {
       {/* Recent cases */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-slate-900">Recent Cases</h2>
+          <div className="flex items-center gap-2">
+            <FileText className="w-5 h-5 text-blue-600" />
+            <h2 className="text-sm font-semibold text-slate-900">Recent Cases</h2>
+          </div>
           <Link href="/cases" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
             View all →
           </Link>
@@ -137,7 +133,11 @@ export default function Dashboard() {
                 recentCases.map((c) => {
                   const cfg = STATUS_CONFIG[c.status] || STATUS_CONFIG.CREATED;
                   return (
-                    <tr key={c.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors group">
+                    <tr
+                      key={c.id}
+                      onClick={() => router.push(`/cases/${c.id}`)}
+                      className="border-b border-slate-100 hover:bg-slate-100 hover:shadow-sm transition-all duration-200 cursor-pointer group"
+                    >
                       <td className="px-6 py-3 text-sm font-medium text-slate-900">
                         {c.case_reference}
                       </td>
@@ -171,28 +171,43 @@ export default function Dashboard() {
             </tbody>
           </table>
         </div>
+        {cases.length > 8 && (
+          <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 text-center">
+            <Link
+              href="/cases"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 border border-slate-200 text-slate-700 rounded-lg font-medium hover:bg-slate-100 hover:text-blue-700 transition-colors"
+            >
+              <ShieldAlert className="w-4 h-4" /> View All Cases ({cases.length})
+            </Link>
+          </div>
+        )}
       </div>
 
-      {/* System info */}
-      <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-        <h2 className="text-sm font-semibold text-slate-900 mb-4">System Information</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex items-center gap-3">
-            <FileText className="w-5 h-5 text-slate-500" />
-            <div>
-              <p className="text-sm text-slate-500">Backend Status</p>
-              <p className="text-sm font-medium text-slate-900">{healthData?.status || "unknown"}</p>
-            </div>
+      {/* Quick Actions */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-100">
+          <div className="flex items-center gap-2">
+            <Plus className="w-5 h-5 text-blue-600" />
+            <h2 className="text-sm font-semibold text-slate-900">Quick Actions</h2>
           </div>
-          <div className="flex items-center gap-3">
-            <DollarSign className="w-5 h-5 text-slate-500" />
-            <div>
-              <p className="text-sm text-slate-500">AI Provider</p>
-              <p className="text-sm font-medium text-slate-900">
-                {healthData?.mocked_ai ? "Mocked (local development)" : "Nemotron API"}
-              </p>
-            </div>
-          </div>
+        </div>
+        <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Link
+            href="/cases/new"
+            className="flex flex-col items-center gap-3 px-6 py-4 border border-slate-200 rounded-xl bg-white hover:bg-blue-50 hover:border-blue-200 transition-colors group"
+          >
+            <Plus className="w-8 h-8 text-blue-600 group-hover:text-blue-700 transition-colors" />
+            <span className="text-sm font-semibold text-slate-900">New Reconciliation</span>
+            <span className="text-xs text-slate-500">Upload PO, Invoice & GRN</span>
+          </Link>
+          <Link
+            href="/cases"
+            className="flex flex-col items-center gap-3 px-6 py-4 border border-slate-200 rounded-xl bg-white hover:bg-blue-50 hover:border-blue-200 transition-colors group"
+          >
+            <ShieldAlert className="w-8 h-8 text-blue-600 group-hover:text-blue-700 transition-colors" />
+            <span className="text-sm font-semibold text-slate-900">Browse Cases</span>
+            <span className="text-xs text-slate-500">Manage all cases</span>
+          </Link>
         </div>
       </div>
     </div>
