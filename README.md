@@ -6,6 +6,17 @@ Compares Purchase Order (PO), Vendor Invoice, and Goods Receipt Note (GRN)
 documents, extracts their contents via AI, performs deterministic financial
 reconciliation, identifies discrepancies, and produces evidence-backed reports.
 
+## Screenshots
+
+> Take 2–3 screenshots of the running frontend and save them here, then
+> uncomment and update the paths below:
+
+<!--
+![Dashboard](./docs/screenshots/dashboard.png)
+![Case Detail](./docs/screenshots/case-detail.png)
+![New Reconciliation](./docs/screenshots/new-reconciliation.png)
+-->
+
 ## Architecture
 
 **AI interprets documents; deterministic Python verifies financial facts.**
@@ -18,6 +29,19 @@ reconciliation, identifies discrepancies, and produces evidence-backed reports.
 
 The backend is a modular FastAPI application. The frontend is Next.js + Tailwind.
 PostgreSQL stores cases, documents, extracted data, and reconciliation results.
+
+## Project Status
+
+**Status: Complete & Deployed**
+
+- All blueprint features implemented: case management, document upload, PDF extraction,
+  AI extraction via Nemotron adapter, deterministic validation, reconciliation
+  (price, quantity, missing item, unbilled receipt, reference mismatch, arithmetic),
+  PDF/CSV reporting, 7-day auto-cleanup, delete endpoints
+- Backend tests: **14 passed** (11 unit + 3 integration)
+- Manual test sets: **21** (MT-001 through MT-021, PO + Invoice + GRN each)
+- Evaluation: Run with real Nemotron API — field accuracy 49.21%, line-item accuracy 48.15%
+- Git: Committed and pushed to `main`
 
 ## Stack
 
